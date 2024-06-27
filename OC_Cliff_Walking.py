@@ -114,6 +114,7 @@ class CliffWalkingEnv(gym.Env):
         colors = np.full(self.rewards.shape, '#ffffff')  # デフォルトは白
         colors[self.start_state // self.width, self.start_state % self.width] = '#87CEFA'  # スタート地点を薄い青に
         colors[self.goal_state // self.width, self.goal_state % self.width] = '#FFA07A'  # ゴール地点を薄い赤に
+        colors[self.rewards == self.cliff_reward] = '#FFFF99'  # 崖を薄い黄色に
 
         # セルを描画
         for i in range(self.height):
@@ -138,7 +139,8 @@ class CliffWalkingEnv(gym.Env):
         # 凡例を追加
         start_patch = plt.Rectangle((0,0), 1, 1, fc='#87CEFA')
         goal_patch = plt.Rectangle((0,0), 1, 1, fc='#FFA07A')
-        ax.legend([start_patch, goal_patch], ['Start', 'Goal'], loc='upper right', bbox_to_anchor=(1.1, 1))
+        cliff_patch = plt.Rectangle((0,0), 1, 1, fc='#FFFF99')
+        ax.legend([start_patch, goal_patch, cliff_patch], ['Start', 'Goal', 'Cliff'], loc='upper right', bbox_to_anchor=(1.1, 1))
 
         plt.tight_layout()
         plt.show()
