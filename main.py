@@ -72,12 +72,12 @@ def Learning_Qlearning():
 
     print("Learning start")
 
-    for i_episode in tqdm(range(20000)):
+    for i_episode in tqdm(range(500)):
         state = env.reset()
         state = state[0]
         episode_reward = 0
 
-        for t in range(1000):
+        for t in range(100):
             action = Q_agent.decide_action(state)
             next_state, reward, done, _, _ = env.step(action)
             Q_agent.update_Q(state, action, next_state, reward)
@@ -109,7 +109,7 @@ def Test():
     print("")
     env.render()
 
-    for t in range(1000):
+    for t in range(100):
         next_state, reward, done, _, _ = env.step(action)
         print("step:",t+1)
         env.render()
