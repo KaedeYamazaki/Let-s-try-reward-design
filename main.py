@@ -1,0 +1,102 @@
+from Algorithms import Sarsa
+from OC_Cliff_Walking import CliffWalkingEnv, Q_Inference
+import gymnasium as gym
+from tqdm import tqdm
+
+NUM_DIZITIZED = 6
+ALPHA = 0.5
+GAMMA = 0.99
+EPSILON = 0.01
+gym.envs.registration.register(id='KitOcEnv-v0',entry_point=CliffWalkingEnv)
+
+
+episode_num = []
+episode_rewards = []
+episode_steps = []
+
+env = gym.make('KitOcEnv-v0')
+
+def Learning_Sarsa():
+    
+    print("Action_num:",env.action_space.n)
+    print("Obs_num:",env.observation_space.n)
+
+    num_actions = env.action_space.n
+    num_states = env.observation_space.n
+    num_dizitized = 1
+    alpha = ALPHA
+    gamma = GAMMA
+    epsilon = EPSILON
+
+    Sarsa_agent = Sarsa(num_actions, num_states, alpha, gamma, epsilon)
+
+    print("Learning start")
+
+    for i_episode in tqdm(range(3000)):
+        state = env.reset()
+        state = state[0]
+        action = Sarsa_agent.decide_action(state)
+        episode_reward = 0
+
+        for t in range(1000):
+            next_state, reward, done, _, _ = env.step(action)
+            next_action = Sarsa_agent.decide_action(next_state)
+            Sarsa_agent.update_Q(state, action, reward, next_state, next_action)
+            action = next_action
+
+            episode_reward += reward
+            if done:
+                episode_num.append(i_episode)
+                episode_rewards.append(episode_reward)
+                episode_steps.append(t)
+                # print("Episode finished after {} timesteps".format(t+1))
+                break
+
+    Sarsa_agent.save_Qtabele("KitOcEnv_v0")
+    env.close()
+    print("Learning finish")
+
+def Inference():
+
+    Q_agent = Q_Inference("KitOcEnv_v0_Sarsa.npz")
+    print("Inference start")
+
+    state = env.reset()
+    state = state[0]
+    action = Q_agent.decide_action(state)
+    episode_reward = 0
+    print("")
+    env.render()
+
+    for t in range(1000):
+        next_state, reward, done, _, _ = env.step(action)
+        print("step:",t+1)
+        env.render()
+        next_action = Q_agent.decide_action(next_state)
+        action = next_action
+
+        episode_reward += reward
+        if done:
+            print("Episode finished after {} timesteps".format(t+1))
+            break
+
+    env.close()
+    print("Inference finish")
+
+def plot():
+    import matplotlib.pyplot as plt
+    plt.plot(episode_num, episode_rewards)
+    plt.xlabel('Episode')
+    plt.ylabel('Total Reward')
+    plt.title('Total Reward vs Episode')
+    plt.show()
+
+if __name__ == '__main__':
+    print("OC_Cliff_Walking")
+    print("崖に落ちないようにしながら最短経路でゴールを目指そう")
+
+    env.set_reward()
+    env.plot_rewards()
+    Learning_Sarsa()
+    plot()
+    Inference()
