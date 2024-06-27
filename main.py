@@ -99,7 +99,7 @@ def Learning_Qlearning():
 def Test():
 
     Q_agent = Inference("KitOcEnv_v0_Q_Learning.npz")
-    Q_agent.plot_q_table()
+    # Q_agent.plot_q_table()
     print("Inference start")
 
     state = env.reset()
@@ -136,7 +136,7 @@ if __name__ == '__main__':
     print("OC_Cliff_Walking")
     print("崖に落ちないようにしながら最短経路でゴールを目指そう")
 
-    # env.set_reward()
+    env.set_reward()
     env.plot_rewards()
     # Learning_Sarsa()
     Learning_Qlearning()

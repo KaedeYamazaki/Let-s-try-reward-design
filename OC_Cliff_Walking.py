@@ -33,8 +33,8 @@ class CliffWalkingEnv(gym.Env):
         # デフォルトの報酬設定
         self.cliff_reward = -100
         self.rewards[3, 1:-1] = self.cliff_reward  # 崖（最下行の2列目から最後から2列目まで）
-        self.rewards[2, :] = 5
-        self.rewards[0, :] = 1
+        self.rewards[2, 1:-1] = 5
+        self.rewards[0, 1:-1] = 1
 
         self.goal_reward = 1
         self.rewards[self.goal_state // self.width, self.goal_state % self.width] = self.goal_reward  # ゴール
@@ -77,8 +77,8 @@ class CliffWalkingEnv(gym.Env):
         reward_4 = input("ゴール地点の報酬を設定してください:")
 
 
-        self.rewards[0, :] = reward_0
-        self.rewards[2, :] = reward_2
+        self.rewards[0, 1:-1] = reward_0
+        self.rewards[2, 1:-1] = reward_2
         self.goal_reward = reward_4
 
 
