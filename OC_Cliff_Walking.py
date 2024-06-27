@@ -1,5 +1,6 @@
 import gymnasium as gym
 import numpy as np
+import seaborn as sns
 from gymnasium import spaces
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -22,17 +23,20 @@ class CliffWalkingEnv(gym.Env):
         # 初期状態と目標状態
         self.start_state = self.height * self.width - self.width
         self.goal_state = self.height * self.width - 1
-        
+
+        print("start_state:",self.start_state)
+        print("goal_state:",self.goal_state)
+
         # 報酬の初期化
         self.rewards = np.zeros(self.shape)
-        # self.rewards.fill(-1)
+        self.rewards.fill(-1)
         # デフォルトの報酬設定
         self.cliff_reward = -100
         self.rewards[3, 1:-1] = self.cliff_reward  # 崖（最下行の2列目から最後から2列目まで）
-        self.rewards[2, 1:-1] = 5
-        self.rewards[0, 1:-1] = 1
+        self.rewards[2, :] = 5
+        self.rewards[0, :] = 1
 
-        self.goal_reward = 10
+        self.goal_reward = 1
         self.rewards[self.goal_state // self.width, self.goal_state % self.width] = self.goal_reward  # ゴール
         
         self.reset()
@@ -56,25 +60,27 @@ class CliffWalkingEnv(gym.Env):
         
         new_state = i * self.width + j
         reward = self.rewards[i, j]
-        done = (new_state == self.goal_state) or (reward == -10)
-        
+
+        done = (new_state == self.goal_state) or (reward == self.cliff_reward)
+
+        if reward != -1 and not done:
+            self.rewards[i, j] = -1  # 通過したセルの報酬を元に戻す
+
         self.state = new_state
         return self.state, reward, done, False, {}
     
     def set_reward(self):
         reward_0 = input("崖から一番離れている地点の報酬を設定してください:")
-        reward_1 = input("崖からちょっとだけ離れている地点の報酬を設定してください:")
+        # reward_1 = input("崖からちょっとだけ離れている地点の報酬を設定してください:")
         reward_2 = input("崖に一番近い地点の報酬を設定してください:")
-        reward_3 = input("崖から落ちてしまった時のの報酬を設定してください:")
+        # reward_3 = input("崖から落ちてしまった時のの報酬を設定してください:")
         reward_4 = input("ゴール地点の報酬を設定してください:")
 
 
         self.rewards[0, :] = reward_0
-        self.rewards[1, :] = reward_1
         self.rewards[2, :] = reward_2
-        self.rewards[3, :] = reward_3  # 崖（最下行の2列目から最後から2列目まで）
-
         self.goal_reward = reward_4
+
 
         self.rewards[self.goal_state // self.width, self.goal_state % self.width] = self.goal_reward
         self.rewards[self.start_state // self.width, self.start_state % self.width] = -1  # スタート地点
@@ -124,7 +130,7 @@ class CliffWalkingEnv(gym.Env):
         ax.set_yticklabels(range(self.height))
 
         # グリッド線を追加
-        ax.grid(which="both", color="gray", linestyle='-', linewidth=1)
+        # ax.grid(which="both", color="gray", linestyle='-', linewidth=1)
 
         # タイトルを設定
         plt.title("Rewards Map")
@@ -138,7 +144,7 @@ class CliffWalkingEnv(gym.Env):
         plt.show()
 
 
-class Q_Inference:
+class Inference:
     def __init__(self, q_table):
         data = np.load(q_table)
         self.q_table = data['q_table']
@@ -146,3 +152,22 @@ class Q_Inference:
     def decide_action(self, state):
         action = np.argmax(self.q_table[state])
         return action
+    
+    def plot_q_table(self):
+        # カスタムのセル値フォーマット関数を定義します
+        def format_cell_value(x):
+            coefficient = '{:.3g}'.format(x)
+            return fr'${{{coefficient}}}$'
+
+
+        # セルの値をX*10^nの形式で変換します
+        formatted_data = np.vectorize(format_cell_value)(self.q_table / 100)
+
+        # ヒートマップを作成します
+        plt.figure(figsize=(10, 8))
+        plt.title("Q-Table Visualization")
+        plt.xlabel("Action")
+        plt.ylabel("State")
+        ax = sns.heatmap(self.q_table, annot=formatted_data, fmt="", cmap="YlGnBu",linewidths=.5)
+
+        plt.show()

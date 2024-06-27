@@ -28,7 +28,6 @@ class Q_Learning:
             action = np.argmax(self.q_table[state])
         else:
             action = random.randrange(self.num_actions)
-
         return action
 
     def save_Qtabele(self,name):
