@@ -27,14 +27,16 @@ class CliffWalkingEnv(gym.Env):
         print("start_state:",self.start_state)
         print("goal_state:",self.goal_state)
 
+        self.slip = 0.1  # 滑る確率
+
         # 報酬の初期化
         self.rewards = np.zeros(self.shape)
         self.rewards.fill(-1)
         # デフォルトの報酬設定
         self.cliff_reward = -100
         self.rewards[3, 1:-1] = self.cliff_reward  # 崖（最下行の2列目から最後から2列目まで）
-        self.rewards[2, 1:-1] = 5
-        self.rewards[0, 1:-1] = 1
+        # self.rewards[2, 1:-1] = 5
+        # self.rewards[0, 1:-1] = 1
 
         self.goal_reward = 1
         self.rewards[self.goal_state // self.width, self.goal_state % self.width] = self.goal_reward  # ゴール
@@ -48,7 +50,12 @@ class CliffWalkingEnv(gym.Env):
 
     def step(self, action):
         i, j = self.state // self.width, self.state % self.width
-        
+
+        if self.start_state != self.state:
+            if np.random.uniform(0.0, 1.0) < self.slip:
+                action = np.random.choice([a for a in range(self.action_space.n) if a != action])
+                print("Slip!")
+
         if action == 0:  # 上
             i = max(i - 1, 0)
         elif action == 1:  # 右
@@ -61,24 +68,28 @@ class CliffWalkingEnv(gym.Env):
         new_state = i * self.width + j
         reward = self.rewards[i, j]
 
-        done = (new_state == self.goal_state) or (reward == self.cliff_reward)
+        done = (new_state == self.goal_state) 
+        game_over = (reward == self.cliff_reward)
 
         if reward != -1 and not done:
             self.rewards[i, j] = -1  # 通過したセルの報酬を元に戻す
 
         self.state = new_state
-        return self.state, reward, done, False, {}
+        return self.state, reward, done, game_over, {}
     
     def set_reward(self):
         reward_0 = input("崖から一番離れている地点の報酬を設定してください:")
-        # reward_1 = input("崖からちょっとだけ離れている地点の報酬を設定してください:")
+        reward_1 = input("崖からちょっとだけ離れている地点の報酬を設定してください:")
         reward_2 = input("崖に一番近い地点の報酬を設定してください:")
         # reward_3 = input("崖から落ちてしまった時のの報酬を設定してください:")
         reward_4 = input("ゴール地点の報酬を設定してください:")
 
 
-        self.rewards[0, 1:-1] = reward_0
-        self.rewards[2, 1:-1] = reward_2
+        self.rewards[0, :] = reward_0
+        self.rewards[1, :] = reward_1
+        self.rewards[2, :] = reward_2
+        # self.cliff_reward = reward_3
+        # self.rewards[3, 1:-1] = self.cliff_reward
         self.goal_reward = reward_4
 
 
@@ -115,6 +126,7 @@ class CliffWalkingEnv(gym.Env):
         colors[self.start_state // self.width, self.start_state % self.width] = '#87CEFA'  # スタート地点を薄い青に
         colors[self.goal_state // self.width, self.goal_state % self.width] = '#FFA07A'  # ゴール地点を薄い赤に
         colors[self.rewards == self.cliff_reward] = '#FFFF99'  # 崖を薄い黄色に
+
 
         # セルを描画
         for i in range(self.height):

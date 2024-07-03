@@ -109,8 +109,8 @@ def Test():
     print("")
     env.render()
 
-    for t in range(100):
-        next_state, reward, done, _, _ = env.step(action)
+    for t in range(36):
+        next_state, reward, done, game_over, _ = env.step(action)
         print("step:",t+1)
         env.render()
         next_action = Q_agent.decide_action(next_state)
@@ -119,7 +119,11 @@ def Test():
         episode_reward += reward
         if done:
             print("Episode finished after {} timesteps".format(t+1))
+            print("Your Score:",(((36-t)/36)*1000))
             break
+
+        if t == 35 or game_over:
+            print("GAME OVER")
 
     env.close()
     print("Inference finish")
