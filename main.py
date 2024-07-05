@@ -110,7 +110,7 @@ def Test():
     env.render()
 
     for t in range(36):
-        next_state, reward, done, game_over, _ = env.step(action)
+        next_state, reward, done, game_over, actual_actions = env.step(action)
         print("step:",t+1)
         env.render()
         next_action = Q_agent.decide_action(next_state)

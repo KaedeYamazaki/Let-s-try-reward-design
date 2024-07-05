@@ -75,7 +75,7 @@ class CliffWalkingEnv(gym.Env):
             self.rewards[i, j] = -1  # 通過したセルの報酬を元に戻す
 
         self.state = new_state
-        return self.state, reward, done, game_over, {}
+        return self.state, reward, done, game_over, action
     
     def set_reward(self):
         reward_0 = input("崖から一番離れている地点の報酬を設定してください:")
