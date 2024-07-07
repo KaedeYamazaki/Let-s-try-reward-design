@@ -2,6 +2,8 @@ from Algorithms import Sarsa, Q_Learning
 from OC_Cliff_Walking import CliffWalkingEnv,Inference
 import gymnasium as gym
 from tqdm import tqdm
+import socket
+import time
 
 
 NUM_DIZITIZED = 6
@@ -15,6 +17,13 @@ episode_num = []
 episode_rewards = []
 episode_steps = []
 env = gym.make('KitOcEnv-v0')
+
+
+HOST = '127.0.0.1'
+PORT = 50007
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client.connect((HOST, PORT))
 
 
 def Learning_Sarsa():
@@ -98,7 +107,7 @@ def Learning_Qlearning():
 
 def Test():
 
-    Q_agent = Inference("KitOcEnv_v0_Q_Learning.npz")
+    Q_agent = Inference("KitOcEnv_v0_Q_Learning_fail.npz")
     # Q_agent.plot_q_table()
     print("Inference start")
 
@@ -109,24 +118,33 @@ def Test():
     print("")
     env.render()
 
-    for t in range(36):
-        next_state, reward, done, game_over, actual_actions = env.step(action)
-        print("step:",t+1)
-        env.render()
-        next_action = Q_agent.decide_action(next_state)
-        action = next_action
+    try:
+        for t in range(36):
+            next_state, reward, done, game_over, actual_actions = env.step(action)
+            result = str(actual_actions['action'])
+            print(result)
+            client.sendall(result.encode('utf-8'))
+            time.sleep(1.0)
+            print("step:",t+1)
+            env.render()
+            next_action = Q_agent.decide_action(next_state)
+            action = next_action
 
-        episode_reward += reward
-        if done:
-            print("Episode finished after {} timesteps".format(t+1))
-            print("Your Score:",(((36-t)/36)*1000))
-            break
+            episode_reward += reward
+            if done:
+                print("Episode finished after {} timesteps".format(t+1))
+                print("Your Score:",(((36-t)/36)*1000))
+                break
 
-        if t == 35 or game_over:
-            print("GAME OVER")
+            if t == 35 or game_over:
+                print("GAME OVER")
+                break
 
-    env.close()
-    print("Inference finish")
+        env.close()
+        print("Inference finish")
+
+    finally:
+        client.close()
 
 def plot():
     import matplotlib.pyplot as plt
@@ -143,6 +161,6 @@ if __name__ == '__main__':
     env.set_reward()
     env.plot_rewards()
     # Learning_Sarsa()
-    Learning_Qlearning()
+    # Learning_Qlearning()
     plot()
     Test()
