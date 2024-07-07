@@ -51,10 +51,9 @@ class CliffWalkingEnv(gym.Env):
     def step(self, action):
         i, j = self.state // self.width, self.state % self.width
 
-        if self.start_state != self.state:
-            if np.random.uniform(0.0, 1.0) < self.slip:
-                action = np.random.choice([a for a in range(self.action_space.n) if a != action])
-                print("Slip!")
+        if self.start_state != self.state and np.random.uniform(0.0, 1.0) < self.slip:
+            action = np.random.choice([a for a in range(self.action_space.n) if a != action])
+            print("Slip!")
 
         if action == 0:  # 上
             i = max(i - 1, 0)
@@ -75,7 +74,7 @@ class CliffWalkingEnv(gym.Env):
             self.rewards[i, j] = -1  # 通過したセルの報酬を元に戻す
 
         self.state = new_state
-        return self.state, reward, done, game_over, action
+        return self.state, reward, done, game_over, {'action' : action}
     
     def set_reward(self):
         reward_0 = input("崖から一番離れている地点の報酬を設定してください:")
