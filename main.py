@@ -107,7 +107,7 @@ def Learning_Qlearning():
 
 def Test():
 
-    Q_agent = Inference("KitOcEnv_v0_Q_Learning_fail.npz")
+    Q_agent = Inference("KitOcEnv_v0_Q_Learning.npz")
     # Q_agent.plot_q_table()
     print("Inference start")
 
@@ -161,6 +161,6 @@ if __name__ == '__main__':
     env.set_reward()
     env.plot_rewards()
     # Learning_Sarsa()
-    # Learning_Qlearning()
+    Learning_Qlearning()
     plot()
     Test()
