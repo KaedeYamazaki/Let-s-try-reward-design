@@ -70,7 +70,7 @@ class CliffWalkingEnv(gym.Env):
         done = (new_state == self.goal_state) 
         game_over = (reward == self.cliff_reward)
 
-        if reward != -1 and not done:
+        if reward != -1 and not done and reward != self.cliff_reward:
             self.rewards[i, j] = -1  # 通過したセルの報酬を元に戻す
 
         self.state = new_state
@@ -94,6 +94,7 @@ class CliffWalkingEnv(gym.Env):
 
         self.rewards[self.goal_state // self.width, self.goal_state % self.width] = self.goal_reward
         self.rewards[self.start_state // self.width, self.start_state % self.width] = -1  # スタート地点
+
 
     def set_reward2(self, state, reward):
         i, j = state // self.width, state % self.width

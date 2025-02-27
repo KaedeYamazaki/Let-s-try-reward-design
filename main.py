@@ -22,9 +22,6 @@ env = gym.make('KitOcEnv-v0')
 HOST = '127.0.0.1'
 PORT = 50007
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect((HOST, PORT))
-
 
 def Learning_Sarsa():
     
@@ -106,6 +103,9 @@ def Learning_Qlearning():
     print("Learning finish")
 
 def Test():
+    score = 0
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((HOST, PORT))
 
     Q_agent = Inference("KitOcEnv_v0_Q_Learning.npz")
     # Q_agent.plot_q_table()
@@ -134,10 +134,15 @@ def Test():
             if done:
                 print("Episode finished after {} timesteps".format(t+1))
                 print("Your Score:",(((36-t)/36)*1000))
+                client.sendall("finish".encode('utf-8'))
+                time.sleep(3.0)
+                score = f"Episode finished after {t + 1} timesteps \nYour Score is {(((36-t)/36)*1000)}"
                 break
 
             if t == 35 or game_over:
                 print("GAME OVER")
+                time.sleep(2.0)
+                client.sendall("GAME OVER".encode('utf-8'))
                 break
 
         env.close()
@@ -145,6 +150,7 @@ def Test():
 
     finally:
         client.close()
+        return score
 
 def plot():
     import matplotlib.pyplot as plt
@@ -163,4 +169,10 @@ if __name__ == '__main__':
     # Learning_Sarsa()
     Learning_Qlearning()
     plot()
-    Test()
+    score = Test()
+    try:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((HOST, PORT))
+        client.sendall(str(score).encode('utf-8'))
+    finally:
+        client.close()
